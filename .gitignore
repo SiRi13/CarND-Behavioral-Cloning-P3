@@ -1,2 +1,4 @@
 data/*
 .remote-sync.json
+
+*.tar
