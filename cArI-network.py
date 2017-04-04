@@ -48,21 +48,25 @@ X_train = np.array(images)
 y_train = np.array(measurements)
 
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda, Conv2D, Cropping2D, Dropout
+from keras.layers import Flatten, Dense, Lambda, Conv2D, Cropping2D, Dropout, MaxPooling2D
+from keras.optimizers import Adam
 
 model = Sequential()
 # simple normalization
-model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160,320,3)))
+model.add(Lambda(lambda x: (x / 127.5) - 1.0, input_shape=(160,320,3), output_shape=(160,320,3)))
 model.add(Cropping2D(cropping=((60,25), (0,0)), input_shape=(160,320,3)))
-# conv layer 1 - 24 filters / 2x2 stride / 5x5 kernel
-model.add(Conv2D(24, kernel_size=(5,5), strides=(2,2)))
-# conv layer 2 - 36 filters / 2x2 stride / 5x5 kernel
-model.add(Conv2D(36, kernel_size=(5,5), strides=(2,2)))
-# conv layer 3 - 48 filters / 2x2 stride / 5x5 kernel
-model.add(Conv2D(48, kernel_size=(5,5), strides=(2,2)))
-# conv layer 4 - 64 filters / none stride / 3x3 kernel
+# conv layer 1 - 24 filters / 5x5 kernel
+model.add(Conv2D(24, kernel_size=(5,5), activation='relu'))
+model.add(MaxPooling2D(strides=(2,2)))
+# conv layer 2 - 36 filters / 5x5 kernel
+model.add(Conv2D(36, kernel_size=(5,5), activation='relu'))
+model.add(MaxPooling2D(strides=(2,2)))
+# conv layer 3 - 48 filters / 5x5 kernel
+model.add(Conv2D(48, kernel_size=(5,5), activation='relu'))
+model.add(MaxPooling2D(strides=(2,2)))
+# conv layer 4 - 64 filters / 3x3 kernel
 model.add(Conv2D(64, kernel_size=(3,3)))
-# conv layer 5 - 64 filters / none stride / 5x5 kernel
+# conv layer 5 - 64 filters / 5x5 kernel
 model.add(Conv2D(64, kernel_size=(3,3)))
 # flatten
 model.add(Flatten())
@@ -77,7 +81,18 @@ model.add(Dense(10, activation='relu'))
 # output
 model.add(Dense(1))
 
-model.compile(loss='mse', optimizer='adam')
-model.fit(X_train, y_train, validation_split=0.2, shuffle=True, epochs=2)
+model.compile(loss='mse', optimizer=Adam(1e-4))
+history_obj = model.fit(X_train, y_train, validation_split=0.3, batch_size=256, shuffle=True, epochs=3, verbose=2)
 
 model.save('cArI.h5')
+
+history_obj.history.keys()
+
+import matplotlib.pyplot as plt
+plt.plot(history_obj.history['loss'])
+plt.plot(history_obj.history['val_loss'])
+plt.title('model mean squared error loss')
+plt.ylabel('mean squared error loss')
+plt.xlabel('epoch')
+plt.legend(['training set', 'validation set'], loc='upper right')
+plt.show()
