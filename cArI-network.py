@@ -1,51 +1,8 @@
-import tarfile
-from os.path import exists
-import os
-import csv
-import cv2
+from data_generator import load_log, split_to_sets, data_generator
 import numpy as np
 
-# extract files from archive
-if not exists('./data'):
-    with tarfile.open('./data.tar', mode='r') as archive:
-        archive.extractall(path='./')
-
-lines = []
-with open('./data/driving_log.csv') as log:
-    log_reader = csv.reader(log)
-    for line in log_reader:
-        lines.append(line)
-
-images = []
-measurements = []
-for line in lines:
-    if 'steering' in line:
-        continue
-    # extract filename from path
-    img_filename = line[0].split('/')[-1]
-    img_filename_left = line[1].split('/')[-1]
-    img_filename_right = line[2].split('/')[-1]
-    image = cv2.imread(os.path.join('./data/IMG', img_filename))
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
-    image_left = cv2.imread(os.path.join('./data/IMG', img_filename_left))
-    image_left = cv2.cvtColor(image_left, cv2.COLOR_RGB2YUV)
-    image_right = cv2.imread(os.path.join('./data/IMG', img_filename_right))
-    image_right = cv2.cvtColor(image_right, cv2.COLOR_RGB2YUV)
-    steering_angle = float(line[3])
-    steering_angle_left = steering_angle + 0.25
-    steering_angle_right = steering_angle - 0.25
-    images.append(image)
-    measurements.append(steering_angle)
-    images.append(image_left)
-    measurements.append(steering_angle_left)
-    images.append(image_right)
-    measurements.append(steering_angle_right)
-
-    # images.append(cv2.flip(image, 1))
-    # measurements.append(steering_angle * -1.0)
-
-X_train = np.array(images)
-y_train = np.array(measurements)
+data = load_log()
+train, valid = split_to_sets(data)
 
 ch, row, col = 3, 160, 320 # image format
 
@@ -77,7 +34,9 @@ model.add(ELU())
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
-history_obj = model.fit(X_train, y_train, validation_split=0.3, batch_size=256, shuffle=True, epochs=3, verbose=2)
+history_obj = model.fit_generator(data_generator(train), steps_per_epoch=len(train),
+                                  validation_data=data_generator(valid), validation_steps=len(valid),
+                                  verbose=2, epochs=8)
 
 model.save('cArI.h5')
 
