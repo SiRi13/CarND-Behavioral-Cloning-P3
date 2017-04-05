@@ -47,41 +47,36 @@ for line in lines:
 X_train = np.array(images)
 y_train = np.array(measurements)
 
+ch, row, col = 3, 160, 320 # image format
+
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda, Conv2D, Cropping2D, Dropout, MaxPooling2D
+from keras.layers import Flatten, Dense, Lambda, Conv2D, Cropping2D, Dropout, MaxPooling2D, ELU
 from keras.optimizers import Adam
 
 model = Sequential()
 # simple normalization
-model.add(Lambda(lambda x: (x / 127.5) - 1.0, input_shape=(160,320,3), output_shape=(160,320,3)))
-model.add(Cropping2D(cropping=((60,25), (0,0)), input_shape=(160,320,3)))
-# conv layer 1 - 24 filters / 5x5 kernel
-model.add(Conv2D(24, kernel_size=(5,5), activation='relu'))
-model.add(MaxPooling2D(strides=(2,2)))
-# conv layer 2 - 36 filters / 5x5 kernel
-model.add(Conv2D(36, kernel_size=(5,5), activation='relu'))
-model.add(MaxPooling2D(strides=(2,2)))
-# conv layer 3 - 48 filters / 5x5 kernel
-model.add(Conv2D(48, kernel_size=(5,5), activation='relu'))
-model.add(MaxPooling2D(strides=(2,2)))
-# conv layer 4 - 64 filters / 3x3 kernel
-model.add(Conv2D(64, kernel_size=(3,3)))
-# conv layer 5 - 64 filters / 5x5 kernel
-model.add(Conv2D(64, kernel_size=(3,3)))
-# flatten
+model.add(Lambda(lambda x: (x / 127.5) - 1.0, input_shape=(row, col, ch), output_shape=(row, col, ch)))
+# model.add(Cropping2D(cropping=((60,25), (0,0))))
+# conv layer 1
+model.add(Conv2D(16, kernel_size=(8,8), strides=(4,4), padding='same'))
+model.add(ELU())
+# conv layer 2
+model.add(Conv2D(32, kernel_size=(5,5), strides=(2,2), padding='same'))
+model.add(ELU())
+# conv layer 3 - 64
+model.add(Conv2D(64, kernel_size=(5,5), strides=(2,2), padding='same'))
+# flatten layer
 model.add(Flatten())
-# fully connected layer 1 - 100
-model.add(Dense(100, activation='relu'))
+model.add(Dropout(0.2))
+model.add(ELU())
+# fully connected layer
+model.add(Dense(512))
 model.add(Dropout(0.5))
-# fully connected layer 2 - 50
-model.add(Dense(50, activation='relu'))
-model.add(Dropout(0.25))
-# fully connected layer 3 - 10
-model.add(Dense(10, activation='relu'))
+model.add(ELU())
 # output
 model.add(Dense(1))
 
-model.compile(loss='mse', optimizer=Adam(1e-4))
+model.compile(loss='mse', optimizer='adam')
 history_obj = model.fit(X_train, y_train, validation_split=0.3, batch_size=256, shuffle=True, epochs=3, verbose=2)
 
 model.save('cArI.h5')
