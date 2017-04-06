@@ -4,3 +4,5 @@ data_old/*
 .remote-sync.json
 
 *.tar
+
+*.zip

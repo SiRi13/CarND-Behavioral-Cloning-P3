@@ -1,19 +1,18 @@
-from data_generator import load_log, split_to_sets, data_generator
+from data_generator import load_logs, split_to_sets, data_generator
 import numpy as np
 
-data = load_log()
+data = load_logs()
 train, valid = split_to_sets(data)
 
 ch, row, col = 3, 160, 320 # image format
 
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda, Conv2D, Cropping2D, Dropout, MaxPooling2D, ELU
+from keras.layers import Flatten, Dense, Lambda, Conv2D, Cropping2D, Dropout, ELU
 from keras.optimizers import Adam
 
 model = Sequential()
 # simple normalization
 model.add(Lambda(lambda x: (x / 127.5) - 1.0, input_shape=(row, col, ch), output_shape=(row, col, ch)))
-# model.add(Cropping2D(cropping=((60,25), (0,0))))
 # conv layer 1
 model.add(Conv2D(16, kernel_size=(8,8), strides=(4,4), padding='same'))
 model.add(ELU())
@@ -26,17 +25,24 @@ model.add(Conv2D(64, kernel_size=(5,5), strides=(2,2), padding='same'))
 model.add(Flatten())
 model.add(Dropout(0.2))
 model.add(ELU())
-# fully connected layer
+# fully connected layer 1
 model.add(Dense(512))
+model.add(Dropout(0.5))
+model.add(ELU())
+# fully connected layer 2
+model.add(Dense(200))
+model.add(Dropout(0.5))
+model.add(ELU())
+# fully connected layer 3
+model.add(Dense(64))
 model.add(Dropout(0.5))
 model.add(ELU())
 # output
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
-history_obj = model.fit_generator(data_generator(train), steps_per_epoch=len(train),
-                                  validation_data=data_generator(valid), validation_steps=len(valid),
-                                  verbose=2, epochs=8)
+history_obj = model.fit_generator(data_generator(train), steps_per_epoch=len(train)//128,
+                                  validation_data=data_generator(valid), validation_steps=len(valid)//128, epochs=1)
 
 model.save('cArI.h5')
 
