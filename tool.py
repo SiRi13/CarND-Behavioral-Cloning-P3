@@ -175,6 +175,48 @@ def test(base_path="./data/", log_file_name="balanced_driving_log.csv"):
             break
     cv2.destroyAllWindows()
 
+def __load_logs(base_path, log_file_name):
+    DROP_ANGLE = 0.1
+    KEEP_RATIO = 6
+    lines = list()
+    with open(os.path.join(base_path, log_file_name), mode='r') as csv_file:
+        reader = csv.reader(csv_file)
+        counter = 0
+        for line in reader:
+            if 'steering' in line:
+                continue
+
+            steering_angle = abs(float(line[3]))
+            if steering_angle <= DROP_ANGLE:
+                if counter < KEEP_RATIO:
+                    counter += 1
+                    continue
+                else:
+                    counter = 0
+
+            for i in range(3):
+                line[i] = os.path.join(base_path, 'IMG', line[i].rsplit('/', 1)[-1])
+            lines.append(line)
+    return np.array(lines)
+
+def print_stats(base_path, log_file_name):
+    base_path = './udacity_data/'
+    log_file_name = 'driving_log.csv'
+    df = pd.read_csv(os.path.join(base_path, log_file_name), names=['center', 'left', 'right', 'steering', 'throttle', 'brake', 'speed'])
+    print(len(df[df.steering > 0.0]))
+    print(len(df[df.steering < 0.0]))
+    print(len(df[df.steering == 0.0]))
+
+    lines = __load_logs(base_path, log_file_name)
+    cCounter = 0
+    lCounter = 0
+    rCounter = 0
+    for line in lines:
+        cCounter += 1 if float(line[3])==0.0 else 0
+        lCounter += 1 if float(line[3])<0.0 else 0
+        rCounter += 1 if float(line[3])>0.0 else 0
+    print('c: {}\tl: {}\tr:{}'.format(cCounter, lCounter, rCounter))
+
 def ParseBoolean(b):
     # ...
     if len(b) < 1:
@@ -189,41 +231,50 @@ def ParseBoolean(b):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Cleaning Data')
     parser.add_argument(
-        'source_folder',
+        '--source_folder',
         default='~/data/',
         type=str,
         help='Path to files.'
     )
     parser.add_argument(
-        'log_file',
+        '--log_file',
         default='driving_log.csv',
         type=str,
         help='Name of log file'
     )
     parser.add_argument(
-        'clean_only',
+        '--clean_only',
         default=False,
         type=ParseBoolean,
         nargs='?',
         help='Clean dataset'
     )
     parser.add_argument(
-        'balance_only',
+        '--balance_only',
         default=False,
         type=ParseBoolean,
         nargs='?',
         help='Balance dataset'
     )
     parser.add_argument(
-        'test_only',
+        '--test_only',
         default=False,
         type=ParseBoolean,
         nargs='?',
         help='Test dataset'
     )
+    parser.add_argument(
+        '--stats',
+        default=False,
+        type=ParseBoolean,
+        nargs='?',
+        help='stats of dataset'
+    )
     args = parser.parse_args()
 
-    if args.test_only:
+    if args.stats:
+        print_stats(args.source_folder, args.log_file)
+    elif args.test_only:
         test(args.source_folder)
     elif args.clean_only:
         clean_logs(args.source_folder)

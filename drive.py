@@ -16,6 +16,9 @@ from keras.models import load_model
 import h5py
 from keras import __version__ as keras_version
 
+# added by SiRi13
+from data_generator import __crop_image
+
 sio = socketio.Server()
 app = Flask(__name__)
 model = None
@@ -60,7 +63,21 @@ def telemetry(sid, data):
         # The current image from the center camera of the car
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
-        image_array = np.asarray(image)
+
+        """
+        additional code to have same image
+        # read image from disk and convert color to YUV color space
+        image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2YUV)
+        # crop top 50 rows and bottom 25 rows
+        image_array = image_array[50:-25,:]
+        # and resize to previous dimensions
+        image_array = cv2.resize(image_array, (320, 160), interpolation=cv2.INTER_CUBIC)
+        """
+        image_array = __crop_image(np.asarray(image))
+        """
+        additional code end
+        """
+
         steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
 
         throttle = controller.update(float(speed))

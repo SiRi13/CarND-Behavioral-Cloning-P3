@@ -10,3 +10,7 @@ data_old/*
 my_data/
 
 cArI\.h5
+
+__pycache__/
+
+old_weights/
