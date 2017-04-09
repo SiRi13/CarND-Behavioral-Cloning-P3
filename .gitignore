@@ -6,3 +6,5 @@ data_old/*
 *.tar
 
 *.zip
+
+my_data/
