@@ -19,6 +19,8 @@ DATA_TR1_LAP1_PATH = './tr1_lap1/'
 DATA_TR1_LAP2_PATH = './tr1_lap2_ctr/'
 DATA_TR1_TRICKY_PATH = './tr1_tricky_spots/'
 DATA_UDACITY_PATH = './udacity_data/'
+DATA_TR1_TURNS_PATH = './tr1_turns/'
+DATA_TR1_BRIDGE_PATH = './tr1_bridge/'
 
 LOG_FILE_NAME = 'balanced_driving_log.csv'
 IMG_PATH = 'IMG'
@@ -33,6 +35,7 @@ def __extract_data(base_path=MY_DATA_PATH, archive_name='./my_data.zip', output_
 def __read_logs(lines=[], base_path=MY_DATA_PATH, log_file_name=LOG_FILE_NAME):
     DROP_ANGLE = 0.1
     KEEP_RATIO = 6
+    lines_added = 0
     with open(os.path.join(base_path, log_file_name), mode='r') as csv_file:
         reader = csv.reader(csv_file)
         counter = 0
@@ -50,7 +53,10 @@ def __read_logs(lines=[], base_path=MY_DATA_PATH, log_file_name=LOG_FILE_NAME):
 
             for i in range(3):
                 line[i] = os.path.join(base_path, IMG_PATH, line[i].rsplit('/', 1)[-1])
+
             lines.append(line)
+            lines_added += 1
+
     cCounter = 0
     lCounter = 0
     rCounter = 0
@@ -59,7 +65,8 @@ def __read_logs(lines=[], base_path=MY_DATA_PATH, log_file_name=LOG_FILE_NAME):
         lCounter += 1 if float(line[3])<0.0 else 0
         rCounter += 1 if float(line[3])>0.0 else 0
     print("center count: {}\tleft count: {}\tright count: {}".format(cCounter, lCounter, rCounter))
-    return lines
+
+    return lines_added, lines
 
 def __add_random_shadow(image):
     h, w = image.shape[0], image.shape[1]
@@ -73,9 +80,7 @@ def __add_random_shadow(image):
     return image
 
 def __crop_image(image, top=0, bottom=0, left=0, right=0):
-    # print(image.shape, top, bottom, left, right)
     image = image[top:bottom, left:right]
-    # print(image.shape)
     return cv2.resize(image, (IMAGE_SIZE[1], IMAGE_SIZE[0]), cv2.INTER_CUBIC)
 
 def __random_brightness(image):
@@ -109,18 +114,17 @@ def load_logs():
     # __extract_data(UDACITY_DATA_PATH, './udacity_data.zip', './udacity_data/')
 
     lines = list()
-    lines = __read_logs(lines=lines, base_path=MY_DATA_PATH)
-    my_data_count = len(lines)
+    my_data_count, lines = __read_logs(lines=lines, base_path=MY_DATA_PATH)
     print("My Data Points Count: ", my_data_count)
-    lines = __read_logs(lines=lines, base_path=DATA_UDACITY_PATH)
-    udacity_data_count = len(lines)
+    udacity_data_count, lines = __read_logs(lines=lines, base_path=DATA_UDACITY_PATH)
     print("Udacity Data Points Count: ", udacity_data_count)
     # lines = __read_logs(lines=lines, base_path=DATA_TR1_PATH)
     # lines = __read_logs(lines=lines, base_path=DATA_TR2_PATH)
-    # lines = __read_logs(lines=lines, base_path=DATA_TR1_LAP1_PATH)
-    # lines = __read_logs(lines=lines, base_path=DATA_TR1_LAP2_PATH)
-    lines = __read_logs(lines=lines, base_path=DATA_TR1_TRICKY_PATH)
-    tricky_data_count = len(lines) - udacity_data_count
+    # bridge_data_count, lines = __read_logs(lines=lines, base_path=DATA_TR1_BRIDGE_PATH)
+    # print("bridge data points: ", bridge_data_count)
+    turns_data_count, lines = __read_logs(lines=lines, base_path=DATA_TR1_TURNS_PATH)
+    print("turns data points: ", turns_data_count)
+    tricky_data_count, lines = __read_logs(lines=lines, base_path=DATA_TR1_TRICKY_PATH)
     print("tricky data points: ", tricky_data_count)
     print("Data Points Total: ", len(lines))
 
