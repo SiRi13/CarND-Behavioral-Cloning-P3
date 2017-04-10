@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 import skimage.transform as sktransform
 from scipy.stats import bernoulli
 
-IMAGE_SIZE = (32, 128, 3)
+IMAGE_SIZE = (160, 320, 3)
 
 DATA_TR1_PATH = './data_tr1/'
 DATA_TR2_PATH = './data_tr2/'
@@ -81,7 +81,8 @@ def __preprocess_image_2(image_path, steering_angle, cam_pos):
     image = np.array(cv2.imread(image_path))
     if bernoulli.rvs(0.5):
         image = __add_random_shadow(image)
-    image = crop_image(image, int(np.random.uniform(52, 68)), int(np.random.uniform(-31, -15)))
+    if bernoulli.rvs(0.5):
+        image = crop_image(image, int(np.random.uniform(52, 68)), int(np.random.uniform(-31, -15)))
     # angle = steering_angle + STEERING_CORRECTION[cam_pos]
     angle = __steering_correction(steering_angle, cam_pos)
 
