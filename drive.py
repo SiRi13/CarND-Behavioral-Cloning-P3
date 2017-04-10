@@ -17,7 +17,7 @@ import h5py
 from keras import __version__ as keras_version
 
 # added by SiRi13
-from data_generator import __crop_image
+from data_generator import crop_image
 
 sio = socketio.Server()
 app = Flask(__name__)
@@ -47,7 +47,7 @@ class SimplePIController:
 
 
 controller = SimplePIController(0.1, 0.002)
-set_speed = 9
+set_speed = 12
 controller.set_desired(set_speed)
 
 
@@ -64,6 +64,8 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
 
+        image_array = np.asarray(image)
+
         """
         additional code to have same image
         # read image from disk and convert color to YUV color space
@@ -73,7 +75,7 @@ def telemetry(sid, data):
         # and resize to previous dimensions
         image_array = cv2.resize(image_array, (320, 160), interpolation=cv2.INTER_CUBIC)
         """
-        image_array = __crop_image(np.asarray(image))
+        image_array = crop_image(image_array)
         """
         additional code end
         """

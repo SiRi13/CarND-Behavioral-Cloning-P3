@@ -46,7 +46,7 @@ history_obj = model.fit_generator(data_generator.data_generator(train, batch_siz
                                   steps_per_epoch=(len(train)*1.5)//batch_size,
                                   validation_data=data_generator.data_generator(valid, batch_size=batch_size),
                                   validation_steps=(len(valid)*1.5)//batch_size,
-                                  epochs=10)
+                                  epochs=5)
 
 model.save('cArI.h5')
 

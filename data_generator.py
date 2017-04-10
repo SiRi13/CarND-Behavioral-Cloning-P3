@@ -51,7 +51,6 @@ def __read_logs(lines=[], base_path=MY_DATA_PATH, log_file_name=LOG_FILE_NAME):
             for i in range(3):
                 line[i] = os.path.join(base_path, IMG_PATH, line[i].rsplit('/', 1)[-1])
             lines.append(line)
-
     cCounter = 0
     lCounter = 0
     rCounter = 0
@@ -73,15 +72,16 @@ def __add_random_shadow(image):
 
     return image
 
-def __crop_image(image, top=60, bottom=-23):
+def crop_image(image, top=60, bottom=-23):
     image = image[top:bottom, :]
     return sktransform.resize(image, IMAGE_SIZE)
 
 STEERING_CORRECTION = [0., .25, -.25]
 def __preprocess_image_2(image_path, steering_angle, cam_pos):
     image = np.array(cv2.imread(image_path))
-    image = __add_random_shadow(image)
-    image = __crop_image(image, int(np.random.uniform(52, 68)), int(np.random.uniform(-31, -15)))
+    if bernoulli.rvs(0.5):
+        image = __add_random_shadow(image)
+    image = crop_image(image, int(np.random.uniform(52, 68)), int(np.random.uniform(-31, -15)))
     # angle = steering_angle + STEERING_CORRECTION[cam_pos]
     angle = __steering_correction(steering_angle, cam_pos)
 
@@ -139,17 +139,19 @@ def load_logs():
     # __extract_data(UDACITY_DATA_PATH, './udacity_data.zip', './udacity_data/')
 
     lines = list()
-    #lines = __read_logs(lines=lines, base_path=MY_DATA_PATH)
-    # my_data_count = len(lines)
-    # print("My Data Points Count: ", my_data_count)
+    lines = __read_logs(lines=lines, base_path=MY_DATA_PATH)
+    my_data_count = len(lines)
+    print("My Data Points Count: ", my_data_count)
     lines = __read_logs(lines=lines, base_path=DATA_UDACITY_PATH)
-    # udacity_data_count = len(lines) - my_data_count
-    # print("Udacity Data Points Count: ", udacity_data_count)
+    udacity_data_count = len(lines) - my_data_count
+    print("Udacity Data Points Count: ", udacity_data_count)
     # lines = __read_logs(lines=lines, base_path=DATA_TR1_PATH)
     # lines = __read_logs(lines=lines, base_path=DATA_TR2_PATH)
     # lines = __read_logs(lines=lines, base_path=DATA_TR1_LAP1_PATH)
     # lines = __read_logs(lines=lines, base_path=DATA_TR1_LAP2_PATH)
-    # lines = __read_logs(lines=lines, base_path=DATA_TR1_TRICKY_PATH)
+    lines = __read_logs(lines=lines, base_path=DATA_TR1_TRICKY_PATH)
+    tricky_data_count = len(lines) - udacity_data_count - my_data_count
+    print("tricky data points: ", tricky_data_count)
     print("Data Points Total: ", len(lines))
 
     return lines
@@ -159,6 +161,7 @@ def split_to_sets(data, test_size=0.2):
 
 def data_generator(data, batch_size=128):
     num_samples = len(data)
+    counter = 0
     while True: # Loop forever so the generator never terminates
         random.shuffle(data)
         for offset in range(0, num_samples, batch_size):
@@ -186,4 +189,8 @@ def data_generator(data, batch_size=128):
 
             X = np.array(images)
             y = np.array(angles)
+
+            counter += 1
+            cv2.imwrite('./images/batch_image' + str(counter) + '.jpeg', images[np.random.randint(len(images))])
+
             yield sklearn.utils.shuffle(X, y)
