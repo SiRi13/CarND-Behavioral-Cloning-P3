@@ -72,25 +72,20 @@ def __add_random_shadow(image):
 
     return image
 
-def crop_image(image, top=60, bottom=-23):
-    image = image[top:bottom, :]
-    return sktransform.resize(image, IMAGE_SIZE)
+def __crop_image(image, top=0, bottom=0, left=0, right=0):
+    # print(image.shape, top, bottom, left, right)
+    image = image[top:bottom, left:right]
+    # print(image.shape)
+    return cv2.resize(image, (IMAGE_SIZE[1], IMAGE_SIZE[0]), cv2.INTER_CUBIC)
 
-STEERING_CORRECTION = [0., .25, -.25]
-def __preprocess_image_2(image_path, steering_angle, cam_pos):
-    image = np.array(cv2.imread(image_path))
-    if bernoulli.rvs(0.5):
-        image = __add_random_shadow(image)
-    if bernoulli.rvs(0.5):
-        image = crop_image(image, int(np.random.uniform(52, 68)), int(np.random.uniform(-31, -15)))
-    # angle = steering_angle + STEERING_CORRECTION[cam_pos]
-    angle = __steering_correction(steering_angle, cam_pos)
-
-    return image, angle
+def __random_brightness(image):
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    image[:,:,2] = image[:,:,2]*(0.25*np.random.uniform())
+    return cv2.cvtColor(image, cv2.COLOR_HSV2RGB)
 
 POSITION_STEERING_CORRECTION_1 = [0, 1, -1]
 def __steering_correction(steering_angle, cam_pos):
-    correction = 0.1
+    correction = 0.12
     # correct angle depending on which camera an steering direction
     if steering_angle < 0 and cam_pos == 1:
         angle = steering_angle * .928 + correction
@@ -109,32 +104,6 @@ def __steering_correction(steering_angle, cam_pos):
 
     return angle
 
-def __preprocess_image(image_path, steering_angle, cam_pos):
-    # read image from disk and convert color to YUV color space
-    image = np.array(cv2.cvtColor((cv2.imread(image_path)), cv2.COLOR_BGR2YUV))
-    # crop top 50 rows and bottom 25 rows
-    image = image[50:-25,:]
-    # and resize to previous dimensions
-    image = cv2.resize(image, (320, 160), interpolation=cv2.INTER_CUBIC)
-    # correct angle depending on which camera an steering direction
-    angle = __steering_correction(steering_angle, cam_pos)
-
-    # flip image randomly
-    if random.randint(1, 10) >= 6:
-        image = np.fliplr(image)
-        angle = -angle
-
-    return image, angle
-
-POSITION_STEERING_CORRECTION = [0.0, 0.2, -0.2]
-def __simple_preprocess(data_point, steering_angle, cam_position):
-    # load center, left and right camera image randomly
-    cam_position = random.randint(0, 2)
-    angle = float(data_point[3]) + POSITION_STEERING_CORRECTION[cam_position]
-    img_file_path = data_point[cam_position]
-    image = cv2.imread(img_file_path)
-    return image, angle
-
 def load_logs():
     # __extract_data()
     # __extract_data(UDACITY_DATA_PATH, './udacity_data.zip', './udacity_data/')
@@ -144,14 +113,14 @@ def load_logs():
     my_data_count = len(lines)
     print("My Data Points Count: ", my_data_count)
     lines = __read_logs(lines=lines, base_path=DATA_UDACITY_PATH)
-    udacity_data_count = len(lines) - my_data_count
+    udacity_data_count = len(lines)
     print("Udacity Data Points Count: ", udacity_data_count)
     # lines = __read_logs(lines=lines, base_path=DATA_TR1_PATH)
     # lines = __read_logs(lines=lines, base_path=DATA_TR2_PATH)
     # lines = __read_logs(lines=lines, base_path=DATA_TR1_LAP1_PATH)
     # lines = __read_logs(lines=lines, base_path=DATA_TR1_LAP2_PATH)
     lines = __read_logs(lines=lines, base_path=DATA_TR1_TRICKY_PATH)
-    tricky_data_count = len(lines) - udacity_data_count - my_data_count
+    tricky_data_count = len(lines) - udacity_data_count
     print("tricky data points: ", tricky_data_count)
     print("Data Points Total: ", len(lines))
 
@@ -174,24 +143,35 @@ def data_generator(data, batch_size=128):
                 cam_pos = np.random.randint(3)
                 image_path = batch_sample[cam_pos]
                 steering_angle = float(batch_sample[3])
-                image, angle = __preprocess_image_2(image_path, steering_angle, cam_pos)
-                """
-                image, angle = __simple_preprocess(batch_sample, steering_angle, cam_pos)
-                for pos in range(3):
-                    image, angle = __preprocess_image(batch_sample[pos], steering_angle, pos)
-                """
+                steering_angle_corrected = __steering_correction(steering_angle, cam_pos)
+                image = np.array(cv2.imread(image_path))
+
                 images.append(image)
-                angles.append(angle)
+                angles.append(steering_angle_corrected)
+
+                # add random shadow
+                if bernoulli.rvs(0.5):
+                    images.append(__add_random_shadow(image))
+                    angles.append(steering_angle_corrected)
+                # change brightness randomly
+                elif bernoulli.rvs(0.5):
+                    images.append(__random_brightness(image))
+                    angles.append(steering_angle_corrected)
+
+                # remove parts of image and resize to IMAGE_SIZE
+                if bernoulli.rvs(0.5):
+                    images.append(__crop_image(image, int(np.random.uniform(0, 10)), int(np.random.uniform(-11, -1)), 0, IMAGE_SIZE[0]))
+                    angles.append(steering_angle_corrected)
 
                 # flip horizontally
                 if bernoulli.rvs(0.5):
                     images.append(cv2.flip(image, 1))
-                    angles.append(-angle)
+                    angles.append(-steering_angle_corrected)
+
 
             X = np.array(images)
             y = np.array(angles)
 
             counter += 1
-            cv2.imwrite('./images/batch_image' + str(counter) + '.jpeg', images[np.random.randint(len(images))])
-
+            cv2.imwrite('./batch_test/batch_image' + str(counter) + '.jpeg', images[np.random.randint(len(images))])
             yield sklearn.utils.shuffle(X, y)
