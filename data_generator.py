@@ -12,27 +12,25 @@ from scipy.stats import bernoulli
 
 IMAGE_SIZE = (160, 320, 3)
 
-DATA_TR1_PATH = './data_tr1/'
-DATA_TR2_PATH = './data_tr2/'
-MY_DATA_PATH = './my_data/'
-DATA_TR1_LAP1_PATH = './tr1_lap1/'
-DATA_TR1_LAP2_PATH = './tr1_lap2_ctr/'
-DATA_TR1_TRICKY_PATH = './tr1_tricky_spots/'
 DATA_UDACITY_PATH = './udacity_data/'
-DATA_TR1_TURNS_PATH = './tr1_turns/'
+
 DATA_TR1_BRIDGE_PATH = './tr1_bridge/'
+DATA_TR1_LAP_PATH = './tr1_lap/'
+DATA_TR1_LAP_CTR_PATH = './tr1_lap_ctr/'
+DATA_TR1_TURNS_PATH = './tr1_turns/'
+DATA_TR1_TURNS2_PATH = './tr1_turns2/'
 
 LOG_FILE_NAME = 'balanced_driving_log.csv'
 IMG_PATH = 'IMG'
 
-def __extract_data(base_path=MY_DATA_PATH, archive_name='./my_data.zip', output_path='./my_data/'):
+def __extract_data(base_path=DATA_UDACITY_PATH, archive_name='./udacity_data.zip', output_path='./udacity_data/'):
     # first make sure data exists
     if not os.path.exists(base_path):
         # otherwise extract files from archive
         with zipfile.ZipFile(archive_name, mode='r') as archive:
             archive.extractall(path=output_path)
 
-def __read_logs(lines=[], base_path=MY_DATA_PATH, log_file_name=LOG_FILE_NAME):
+def __read_logs(lines=[], base_path=DATA_UDACITY_PATH, log_file_name=LOG_FILE_NAME):
     DROP_ANGLE = 0.1
     KEEP_RATIO = 6
     lines_added = 0
@@ -109,23 +107,12 @@ def __steering_correction(steering_angle, cam_pos):
 
     return angle
 
-def load_logs():
-    # __extract_data()
-    # __extract_data(UDACITY_DATA_PATH, './udacity_data.zip', './udacity_data/')
-
+def load_logs(data_folder_list=[DATA_UDACITY_PATH]):
     lines = list()
-    my_data_count, lines = __read_logs(lines=lines, base_path=MY_DATA_PATH)
-    print("My Data Points Count: ", my_data_count)
-    udacity_data_count, lines = __read_logs(lines=lines, base_path=DATA_UDACITY_PATH)
-    print("Udacity Data Points Count: ", udacity_data_count)
-    # lines = __read_logs(lines=lines, base_path=DATA_TR1_PATH)
-    # lines = __read_logs(lines=lines, base_path=DATA_TR2_PATH)
-    # bridge_data_count, lines = __read_logs(lines=lines, base_path=DATA_TR1_BRIDGE_PATH)
-    # print("bridge data points: ", bridge_data_count)
-    turns_data_count, lines = __read_logs(lines=lines, base_path=DATA_TR1_TURNS_PATH)
-    print("turns data points: ", turns_data_count)
-    tricky_data_count, lines = __read_logs(lines=lines, base_path=DATA_TR1_TRICKY_PATH)
-    print("tricky data points: ", tricky_data_count)
+    for path in data_folder_list:
+        count, lines = __read_logs(lines=lines, base_path=path)
+        print("Data Points for '{}': {}".format(path, count))
+
     print("Data Points Total: ", len(lines))
 
     return lines
@@ -135,6 +122,7 @@ def split_to_sets(data, test_size=0.2):
 
 def data_generator(data, batch_size=128):
     num_samples = len(data)
+    batch_counter = 0
     counter = 0
     while True: # Loop forever so the generator never terminates
         random.shuffle(data)
@@ -150,25 +138,30 @@ def data_generator(data, batch_size=128):
                 steering_angle_corrected = __steering_correction(steering_angle, cam_pos)
                 image = np.array(cv2.imread(image_path))
 
+                counter += 1
                 images.append(image)
                 angles.append(steering_angle_corrected)
 
                 # add random shadow
                 if bernoulli.rvs(0.5):
+                    counter += 1
                     images.append(__add_random_shadow(image))
                     angles.append(steering_angle_corrected)
                 # change brightness randomly
                 elif bernoulli.rvs(0.5):
+                    counter += 1
                     images.append(__random_brightness(image))
                     angles.append(steering_angle_corrected)
 
                 # remove parts of image and resize to IMAGE_SIZE
                 if bernoulli.rvs(0.5):
+                    counter += 1
                     images.append(__crop_image(image, int(np.random.uniform(0, 10)), int(np.random.uniform(-11, -1)), 0, IMAGE_SIZE[0]))
                     angles.append(steering_angle_corrected)
 
                 # flip horizontally
                 if bernoulli.rvs(0.5):
+                    counter += 1
                     images.append(cv2.flip(image, 1))
                     angles.append(-steering_angle_corrected)
 
@@ -176,6 +169,9 @@ def data_generator(data, batch_size=128):
             X = np.array(images)
             y = np.array(angles)
 
-            counter += 1
-            cv2.imwrite('./batch_test/batch_image' + str(counter) + '.jpeg', images[np.random.randint(len(images))])
+            batch_counter += 1
+            # counter += 1
+            # cv2.imwrite('./batch_test/batch_image' + str(counter) + '.jpeg', images[np.random.randint(len(images))])
             yield sklearn.utils.shuffle(X, y)
+    print('Batch #{} contains {} data points'.format(batch_counter, counter))
+    counter = 0

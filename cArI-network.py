@@ -6,7 +6,13 @@ import matplotlib.pyplot as plt
 
 start = time.time()
 
-data = data_generator.load_logs()
+data = data_generator.load_logs([data_generator.DATA_TR1_LAP_PATH,
+                                 './tr1_turn3/',
+                                 data_generator.DATA_TR1_BRIDGE_PATH,
+                                 data_generator.DATA_TR1_TURNS2_PATH,
+                                 './tr1_turns3/', './tr1_bridge2/',
+                                 data_generator.DATA_UDACITY_PATH])
+
 train, valid = data_generator.split_to_sets(data)
 
 row, col, ch = IMAGE_SIZE # image format
@@ -52,6 +58,10 @@ def get_nvidia(model):
     model.add(Conv2D(64, kernel_size=(3,3)))
     # flatten
     model.add(Flatten())
+    model.add(Droptout(0.25))
+    # fully connected layer 0 - 500
+    model.add(Dense(500, activation='relu'))
+    model.add(Dropout(0.5))
     # fully connected layer 1 - 100
     model.add(Dense(100, activation='relu'))
     model.add(Dropout(0.5))
@@ -106,10 +116,10 @@ model_arch, model = get_nvidia_pooling(model)
 # output
 model.add(Dense(1))
 
-model.compile(loss='mse', optimizer=Adam(lr=1e-04))
+model.compile(loss='mae', optimizer=Adam(lr=1e-04))
 
-earlyStopper = EarlyStopping(min_delta=0.009, patience=4, mode='min')
-checkpointer = ModelCheckpoint(filepath="./weights.h5", verbose=1, save_best_only=True)
+earlyStopper = EarlyStopping(min_delta=0.008, patience=4, mode='min')
+checkpointer = ModelCheckpoint(filepath="./weights_mae.h5", verbose=1, save_best_only=True)
 history = LossHistory()
 
 history_obj = model.fit_generator(data_generator.data_generator(train, batch_size=batch_size),
@@ -124,11 +134,12 @@ end = time.time()
 
 current_time_formatted =  str(time.strftime('%Y%m%d_%H%M%S'))
 duration = end - start
-duration / 60
-model.summary()
+print(duration / 60)
+
 # with open('./model_architecture_{}.txt'.format(model_arch), mode='w') as arch_file:
 #     arch_file.write('Model: {} trained @ {}'.format(model_arch, time.time()))
 #     arch_file.writelines(summary.split('\n'))
+# model.summary()
 
 plt.plot(history.losses)
 plt.savefig('./images/loss_plot_{}_{}.jpeg'.format(model_arch,current_time_formatted))
