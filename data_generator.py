@@ -83,7 +83,7 @@ def __crop_image(image, top=0, bottom=0, left=0, right=0):
 
 def __random_brightness(image):
     image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-    image[:,:,2] = image[:,:,2]*(0.25*np.random.uniform())
+    image[:,:,2] = image[:,:,2]*(np.random.uniform(0.35, 1.0))
     return cv2.cvtColor(image, cv2.COLOR_HSV2RGB)
 
 POSITION_STEERING_CORRECTION_1 = [0, 1, -1]
