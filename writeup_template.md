@@ -18,13 +18,15 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./examples/placeholder.png "Model Visualization"
-[image2]: ./examples/placeholder.png "Grayscaling"
-[image3]: ./examples/placeholder_small.png "Recovery Image"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
-[image5]: ./examples/placeholder_small.png "Recovery Image"
-[image6]: ./examples/placeholder_small.png "Normal Image"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
+[image1]:       ./images/cArI_visualized.png "Model Visualization"
+[valLossPlot]:  ./images/plots/val_loss_plot_nvidia_with_pooling_20170411_181923.jpeg "Validation versus Training loss of Model"
+[image2]:       ./simulator_data/tr1_lap/IMG/center_2017_04_10_22_51_55_322.jpg "Regular Image"
+[image3]:       ./simulator_data/tr1_turn3/IMG/right_2017_04_11_20_17_53_952.jpg "Recovery Image"
+[image4]:       ./simulator_data/tr1_turn3/IMG/right_2017_04_11_20_17_54_435.jpg "Recovery Image"
+[image5]:       ./simulator_data/tr1_turn3/IMG/right_2017_04_11_20_17_53_952.jpg "Recovery Image"
+[image6]:       ./images/random_batch/batch_image234.jpeg "Normal Image"
+[image7]:       ./images/plots/random_batch.png "Flipped Image"
+[image8]:       ./images/plots/random_augmented_images.png "Preprocessed Images"
 
 ## Rubric Points
 ### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -35,13 +37,15 @@ The goals / steps of this project are the following:
 #### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
-* model.py containing the script to create and train the model
+* cArI-network.py containing the script to create and train the model
 * drive.py for driving the car in autonomous mode
 * model.h5 containing a trained convolution neural network
 * writeup_report.md or writeup_report.pdf summarizing the results
 
 #### 2. Submission includes functional code
-Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing
+Udacity provided the simulator and the **drive.py** file, which connects to the simulator, retrieves a frame, feeds it into the network and takes its prediction to update the steering angle.
+I did not have to change the **drive.py** script because my normalization is done by the model with keras _**Cropping2D**_ and _**Lambda**_ layers.
+
 ```sh
 python drive.py model.h5
 ```
@@ -118,6 +122,7 @@ To augment the data sat, I also flipped images and angles thinking that this wou
 
 ![alt text][image6]
 ![alt text][image7]
+![alt text][image8]
 
 Etc ....
 
