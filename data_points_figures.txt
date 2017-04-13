@@ -1,0 +1,15 @@
+center count: 15	left count: 234	right count: 40
+Data Points for './tr1_lap/': 289
+center count: 24	left count: 364	right count: 303
+Data Points for './tr1_lap_ctr/': 402
+center count: 27	left count: 500	right count: 386
+Data Points for './tr1_bridge/': 222
+center count: 47	left count: 956	right count: 502
+Data Points for './tr1_turns2/': 592
+center count: 676	left count: 2017	right count: 1771
+Data Points for './udacity_data/': 2959
+center count: 683	left count: 2287	right count: 1915
+Data Points for './tr1_turns3/': 421
+center count: 701	left count: 2477	right count: 2036
+Data Points for './tr1_bridge2/': 329
+Data Points Total:  5214
