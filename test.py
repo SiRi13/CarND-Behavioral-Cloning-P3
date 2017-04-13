@@ -102,3 +102,49 @@ line[0].rsplit('/',1)[-1].apply(lambda fileName: os.path.join(MY_DATA_PATH, IMG_
 
 from scipy.stats import bernoulli
 bernoulli.rvs(0.5)
+
+import data_generator
+
+lines = data_generator.load_logs(['./simulator_data/tr1_lap/'])
+for batch in data_generator.data_generator(lines):
+    X_batch, Y_batch = batch
+    idxList = np.random.randint(0, len(X_batch), size=6)
+
+    plt.figure(figsize=(15,5))
+    for i in range(len(idxList)):
+        plt.subplot(2,3,i+1)
+        plt.title("angle: {}".format(Y_batch[i]))
+        plt.imshow(cv2.cvtColor(X_batch[i], cv2.COLOR_RGB2BGR))
+
+    plt.tight_layout()
+    plt.savefig('./images/plots/random_batch.png')
+    plt.show()
+
+    break
+
+rnd_line = lines[np.random.randint(len(lines))]
+c_img, l_img, r_img = rnd_line[:3]
+c_img = cv2.cvtColor(cv2.imread(c_img), cv2.COLOR_BGR2RGB)
+l_img = cv2.cvtColor(cv2.imread(l_img), cv2.COLOR_BGR2RGB)
+r_img = cv2.cvtColor(cv2.imread(r_img), cv2.COLOR_BGR2RGB)
+c_img_shadow = data_generator.__add_random_shadow(np.copy(c_img))
+l_img_brightness = data_generator.__random_brightness(np.copy(l_img))
+r_img_cropped = data_generator.__crop_image(np.copy(r_img), int(np.random.uniform(0, 10)), int(np.random.uniform(-11, -1)), 0, data_generator.IMAGE_SIZE[0])
+c_img_shadow_flip = cv2.flip(np.copy(c_img_shadow), 1)
+
+plt.figure(figsize=(8,5))
+plt.subplot(221)
+plt.title("center image w/ random shadow")
+plt.imshow(np.vstack((c_img, c_img_shadow)))
+plt.subplot(222)
+plt.title("left hand image w/ random brightness")
+plt.imshow(np.vstack((l_img, l_img_brightness)))
+plt.subplot(223)
+plt.title("right hand image w/ cropped slightly")
+plt.imshow(np.vstack((r_img, r_img_cropped)))
+plt.subplot(224)
+plt.title("center image w/ shadow and flipped")
+plt.imshow(np.vstack((c_img_shadow, c_img_shadow_flip)))
+plt.tight_layout()
+plt.savefig('./images/plots/random_augmented_images.png')
+plt.show()
