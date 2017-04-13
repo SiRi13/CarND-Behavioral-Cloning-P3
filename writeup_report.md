@@ -1,13 +1,5 @@
 # **Behavioral Cloning**
 
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
----
-
-**Behavioral Cloning Project**
-
 The goals / steps of this project are the following:
 * Use the simulator to collect data of good driving behavior
 * Build, a convolution neural network in Keras that predicts steering angles from images
@@ -42,14 +34,15 @@ The goals / steps of this project are the following:
 #### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
-* cArI-network.py containing the script to create and train the model
+* model.py containing the script to create and train the model
 * drive.py for driving the car in autonomous mode
 * model.h5 containing a trained convolution neural network
-* writeup_report.md or writeup_report.pdf summarizing the results
+* writeup_report.md summarizing the results
+* run1.mp4 video of one complete lap in autonomous mode
 
 #### 2. Submission includes functional code
 Udacity provided the simulator and the **drive.py** file, which connects to the simulator, retrieves a frame, feeds it into the network and takes its prediction to update the steering angle.
-I did not have to change the **drive.py** script because my normalization is done by the model with keras _**Cropping2D**_ and _**Lambda**_ layers.
+I did not have to change the **drive.py** script because my normalization is done by the model with _keras_ _**Cropping2D**_ and _**Lambda**_ layers.
 
 ```sh
 python drive.py model.h5
@@ -58,6 +51,7 @@ python drive.py model.h5
 #### 3. Submission code is usable and readable
 
 The **model.py** file contains the code for training and saving the convolutional neural network.
+Loading, preprocessing and augmenting the data points is handled by the file **data_generator.py**.
 
 ### Model Architecture and Training Strategy
 
@@ -153,12 +147,7 @@ Here is an example image of center lane driving:
 
 ![alt text][image2]
 
-I only recorded recovering for turn three, because my model was going straight or even slight left at some point of the turn.
-After training with addition set of recovering data, the car made it through this turn.
-
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
+I did not create recovering data because it is very difficult to create it and made the result worse than without.
 
 To increase the number of images without having to drive the simulator all day, I augmented each data point randomly.
 Each data point was added as it was. Then it either got a shadow overlay or the brightness got changed.
@@ -169,7 +158,7 @@ None of these four methods were applied every time but with a fifty-fifty chance
 ![alt text][image8]
 
 
-There were 5214 data points loaded. After preprocessing there are probably about 7800 to feed into the network.
+There were 5214 data points loaded. After preprocessing and augmentation there are probably about 11260 points to feed into the network.
 The data gets shuffled before splitting it into training and validation data as well as before creating the batches and
 before yielding them from the generator.
 For training I used 4171 of the 5214 data points or 80% whereas the left 1042 points were used for validation.
