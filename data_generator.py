@@ -118,6 +118,7 @@ def load_logs(data_folder_list=[DATA_UDACITY_PATH]):
     return lines
 
 def split_to_sets(data, test_size=0.2):
+    random.shuffle(data)
     return train_test_split(data, test_size=test_size)
 
 def data_generator(data, batch_size=128):
