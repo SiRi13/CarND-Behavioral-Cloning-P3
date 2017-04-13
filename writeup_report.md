@@ -10,8 +10,7 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[nvidia]:       ./images/nvidia_cnn.png "NVIDIA End-To-End Learning Model"
-[image1]:       ./images/cArI_visualized.png "Model Visualization"
+[image1]:       ./images/model_plot.png "Model Visualization"
 [fm1_with_street]:       ./images/plots/layer1_feature_map_with_street.png "Model Visualization"
 [fm1_without_street]:    ./images/plots/layer1_feature_map_withou_street.png "Model Visualization"
 [fm2_with_street]:       ./images/plots/layer2_feature_map_with_street.png "Model Visualization"
@@ -136,9 +135,18 @@ Non-trainable params: 0.0
 _________________________________________________________________
 ```
 
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
+Here are two feature maps of the first convolutional layer.
+The source image of the first map contained a street whereas the second did not.
+It is visible that the network can detect streets or border of the street.
 
-![alt test][image1]
+![alt text][fm1_with_street]
+Feature Map with street in source image
+![alt text][fm1_without_street]
+Feature Map without street in source image  
+
+The following diagram shows the training progress of the network and that it stopped after 8 epochs with a validation loss of below 0.12.
+
+![alt text][valLossPlot]
 
 #### 3. Creation of the Training Set & Training Process
 
