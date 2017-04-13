@@ -19,6 +19,9 @@ DATA_TR1_LAP_PATH = './tr1_lap/'
 DATA_TR1_LAP_CTR_PATH = './tr1_lap_ctr/'
 DATA_TR1_TURNS_PATH = './tr1_turns/'
 DATA_TR1_TURNS2_PATH = './tr1_turns2/'
+DATA_TR1_TURNS3_PATH = './tr1_turns3/'
+DATA_TR1_BRIDGE2_PATH = './tr1_bridge2/'
+DATA_TR1_TURN3_PATH = './tr1_turn3/'
 
 LOG_FILE_NAME = 'balanced_driving_log.csv'
 IMG_PATH = 'IMG'
@@ -157,7 +160,7 @@ def data_generator(data, batch_size=128):
                 # remove parts of image and resize to IMAGE_SIZE
                 if bernoulli.rvs(0.5):
                     counter += 1
-                    images.append(__crop_image(image, int(np.random.uniform(0, 10)), int(np.random.uniform(-11, -1)), 0, IMAGE_SIZE[0]))
+                    images.append(__crop_image(image, int(np.random.uniform(0, 5)), int(np.random.uniform(-6, -1)), 0, IMAGE_SIZE[0]))
                     angles.append(steering_angle_corrected)
 
                 # flip horizontally
@@ -174,5 +177,5 @@ def data_generator(data, batch_size=128):
             # counter += 1
             # cv2.imwrite('./batch_test/batch_image' + str(counter) + '.jpeg', images[np.random.randint(len(images))])
             yield sklearn.utils.shuffle(X, y)
-    print('Batch #{} contains {} data points'.format(batch_counter, counter))
-    counter = 0
+        print('Batch #{} contains {} data points'.format(batch_counter, counter))
+        counter = 0

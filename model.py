@@ -9,9 +9,13 @@ import matplotlib.pyplot as plt
 start = time.time()
 
 # load log files and merge them to one list
-data = data_generator.load_logs(['./simulator_data/tr1_lap/', './simulator_data/tr1_lap_ctr/',
-                                 './simulator_data/tr1_bridge/', './simulator_data/tr1_turns2/',
-                                 './simulator_data/tr1_turns3/', './simulator_data/tr1_bridge2/'])
+data = data_generator.load_logs([data_generator.DATA_TR1_LAP_PATH,
+                                 data_generator.DATA_TR1_LAP_CTR_PATH,
+                                 data_generator.DATA_TR1_BRIDGE_PATH,
+                                 data_generator.DATA_TR1_TURNS2_PATH,
+                                 data_generator.DATA_TR1_TURNS3_PATH,
+                                 data_generator.DATA_TR1_BRIDGE2_PATH,
+                                 data_generator.DATA_UDACITY_PATH])
 
 # shuffle and split data in training and validation set
 train, valid = data_generator.split_to_sets(data)
@@ -19,7 +23,7 @@ train, valid = data_generator.split_to_sets(data)
 # image format from data_generator
 row, col, ch = IMAGE_SIZE
 # 32 on aws instance, 16 on local machine
-batch_size = 16
+batch_size = 32
 
 # importing keras dependencies
 from keras.models import Sequential
@@ -81,9 +85,9 @@ history = LossHistory()
 
 # fit_generator uses data_generator for training and validation data
 history_obj = model.fit_generator(data_generator.data_generator(train, batch_size=batch_size),
-                                  steps_per_epoch=(len(train)*1.5)//batch_size,
+                                  steps_per_epoch=(len(train)*2.5)//batch_size,
                                   validation_data=data_generator.data_generator(valid, batch_size=batch_size),
-                                  validation_steps=(len(valid)*1.5)//batch_size,
+                                  validation_steps=(len(valid)*2.5)//batch_size,
                                   epochs=50, verbose=2,
                                   callbacks=[history, earlyStopper, checkpointer])
 
@@ -99,7 +103,7 @@ current_time_formatted =  str(time.strftime('%Y%m%d_%H%M%S'))
 duration = end - start
 print(duration / 60)
 
-model_arch = 'nvidia_with_pooling'
+model_arch = 'traffic_sign_net'
 # plot diagram of losses per epoch
 plt.plot(history.losses)
 plt.savefig('./images/loss_plot_{}_{}.jpeg'.format(model_arch,current_time_formatted))
@@ -108,8 +112,8 @@ plt.show()
 # plot progress of training and validation loss over all epochs
 plt.plot(history_obj.history['loss'])
 plt.plot(history_obj.history['val_loss'])
-plt.title('model mean squared error loss')
-plt.ylabel('mean squared error loss')
+plt.title('model mean average error loss')
+plt.ylabel('mean average error loss')
 plt.xlabel('epoch')
 plt.legend(['training set', 'validation set'], loc='upper right')
 plt.savefig('./images/val_loss_plot_{}_{}.jpeg'.format(model_arch, current_time_formatted))
