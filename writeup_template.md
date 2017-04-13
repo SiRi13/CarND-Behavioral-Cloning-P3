@@ -169,10 +169,10 @@ None of these four methods were applied every time but with a fifty-fifty chance
 ![alt text][image8]
 
 
-There were about 4800 data points loaded. After preprocessing there are probably about 7000 to feed into the network.
+There were 5214 data points loaded. After preprocessing there are probably about 7800 to feed into the network.
 The data gets shuffled before splitting it into training and validation data as well as before creating the batches and
 before yielding them from the generator.
-For training I used 3840 of the 4800 data points or 80% whereas the 960 points left were used for validation.
+For training I used 4171 of the 5214 data points or 80% whereas the left 1042 points were used for validation.
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting.
 The ideal number of epochs was 8 which was determined by the _**EarlyStopping**_ callback.
